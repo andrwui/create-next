@@ -1,0 +1,23 @@
+{
+  "name": "create-andrwui-next",
+  "version": "1.0.0",
+  "type": "module",
+  "bin": {
+    "create-andrwui-next": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "templates"
+  ],
+  "dependencies": {
+    "inquirer": "^12.4.2"
+  },
+  "packageManager": "bun@latest",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "build": "mkdir -p dist && chmod +x dist/index.js",
+    "prepublishOnly": "npm run build"
+  }
+}
