@@ -13,7 +13,7 @@ type RootLayoutProps = Readonly<{
 
 const RootLayout = ({ children }: RootLayoutProps) => {
   return (
- a   <html lang="en">
+    <html lang="en">
       <body>{children}</body>
     </html>
   )
