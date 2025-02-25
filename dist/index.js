@@ -29,7 +29,13 @@ const optionalPackages = [
   { name: 'react three fiber', value: 'three @types/three @react-three/fiber' },
 ]
 
-// Setup keyboard handling
+const packageManagers = [
+  { name: 'bun', value: 'bun', install: 'add', installDev: 'add -D', createNextApp: '--use-bun', createCommand: 'bunx --bun' },
+  { name: 'pnpm', value: 'pnpm', install: 'add', installDev: 'add -D', createNextApp: '--use-pnpm', createCommand: 'pnpm dlx' },
+  { name: 'npm', value: 'npm', install: 'install', installDev: 'install --save-dev', createNextApp: '--use-npm', createCommand: 'npx' },
+  { name: 'yarn', value: 'yarn', install: 'add', installDev: 'add -D', createNextApp: '--use-yarn', createCommand: 'yarn dlx' },
+]
+
 const setupKeyboardHandling = () => {
   readline.emitKeypressEvents(process.stdin)
   if (process.stdin.isTTY) {
@@ -39,7 +45,6 @@ const setupKeyboardHandling = () => {
   process.stdin.on('keypress', (_, key) => {
     if ((key.name === 'q' && !key.shift) || key.name === 'escape') {
       console.log('\n\nExiting...')
-      // Show cursor before exiting
       process.stdout.write('\u001B[?25h')
       process.exit(0)
     }
@@ -94,8 +99,7 @@ const copyTemplateFolder = (srcDir, destDir) => {
   }
 }
 
-const installPackages = async (deps, isDev = false, type = '') => {
-  // Temporarily disable keyboard handling during installation
+const installPackages = async (deps, isDev = false, type = '', selectedPM) => {
   if (process.stdin.isTTY) {
     process.stdin.setRawMode(false)
   }
@@ -103,10 +107,8 @@ const installPackages = async (deps, isDev = false, type = '') => {
   try {
     for (const dep of deps) {
       writeStatus(`installing${type} packages... ${dep}`)
-      const success = executeCommand(
-        `bun add ${isDev ? '-D ' : ''}${dep}`,
-        `Failed to install ${dep}`,
-      )
+      const command = `${selectedPM.name} ${isDev ? selectedPM.installDev : selectedPM.install} ${dep}`
+      const success = executeCommand(command, `Failed to install ${dep}`)
       if (!success) return false
     }
     writeStatus(`installing${type} packages... done ✓`)
@@ -115,7 +117,6 @@ const installPackages = async (deps, isDev = false, type = '') => {
     console.error(`\nFailed to install${type} packages:`, error.message)
     return false
   } finally {
-    // Re-enable keyboard handling after installation
     if (process.stdin.isTTY) {
       process.stdin.setRawMode(true)
     }
@@ -123,7 +124,6 @@ const installPackages = async (deps, isDev = false, type = '') => {
 }
 
 const cleanupAndExit = (code = 0) => {
-  // Ensure cursor is visible
   process.stdout.write('\u001B[?25h')
   process.exit(code)
 }
@@ -142,12 +142,12 @@ const init = async () => {
         message: 'project name:',
         default: 'project-name',
         theme: {
-          prefix: '',
+          prefix: '\uf002',
           style: {
             answer: (string) => string,
             message: (string) => string,
             error: (string) => string,
-            defaultAnswer: (string) => string,
+            defaultAnswer: (string) => `\x1b[2m${string}\x1b[0m`,
           },
         },
       },
@@ -172,40 +172,66 @@ const init = async () => {
             disabledChoice: (text) => text,
             description: (text) => text,
           },
-          prefix: '',
+          prefix: '\uf02d',
           icon: {
-            checked: ' ',
-            unchecked: ' ',
+            checked: ' \uf0c8',
+            unchecked: ' \uf096',
           },
           helpMode: 'never',
         },
       },
     ])
+
+    const { packageManager } = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'packageManager',
+        message: 'select package manager:',
+        choices: packageManagers,
+        theme: {
+          style: {
+            answer: (text) => ' ' + text,
+            message: (text) => text,
+            error: (text) => text,
+            defaultAnswer: (text) => text,
+            help: () => '',
+            highlight: (text) => text,
+            key: (text) => text,
+            disabledChoice: (text) => text,
+            description: (text) => text,
+          },
+          prefix: '\udb84\udc64',
+          helpMode: 'never',
+        },
+      },
+    ])
+
+    // Get the full package manager object based on the selected value
+    const selectedPM = packageManagers.find(pm => pm.value === packageManager)
+
+    console.log(`selected package manager: ${selectedPM.name}`)
+
     writeStatus('creating next app...')
-    const createNextAppCmd = `bunx --bun create-next-app@latest ${isHere ? '.' : projectName
-      } --ts --app --src-dir --skip-install --use-bun --empty --turbo --yes`
+    const createNextAppCmd = `${selectedPM.createCommand} create-next-app@latest ${isHere ? '.' : projectName} --ts --app --src-dir --skip-install ${selectedPM.createNextApp} --empty --turbo --yes`
 
     if (!executeCommand(createNextAppCmd, 'Failed to create Next.js app')) {
       cleanupAndExit(1)
     }
     writeStatus('creating next app... done ✓')
 
-    // Change to project directory if not using --here
     if (!isHere) {
       process.chdir(projectName)
     }
 
-    console.log('') // Add a newline before starting installations
+    console.log('')
 
-    // Install all regular dependencies
     const allDeps = [...dependencies, ...selectedPackages]
-    if (!(await installPackages(allDeps))) {
+    if (!(await installPackages(allDeps, false, '', selectedPM))) {
       cleanupAndExit(1)
     }
     console.log('')
 
-    // Install dev dependencies
-    if (!(await installPackages(devDependencies, true, ' dev'))) {
+    if (!(await installPackages(devDependencies, true, ' dev', selectedPM))) {
       cleanupAndExit(1)
     }
     console.log('')
@@ -221,9 +247,8 @@ const init = async () => {
     if (!isHere) {
       console.log(`cd ${projectName}`)
     }
-    console.log('bun dev\n')
+    console.log(`${selectedPM.name} ${selectedPM.name === 'npm' ? 'run ' : ''}dev\n`)
 
-    // Clean exit with cursor restored
     cleanupAndExit(0)
   } catch (error) {
     console.error('\nAn unexpected error occurred:', error.message)
@@ -235,4 +260,3 @@ init().catch((error) => {
   console.error('\nFailed to initialize project:', error.message)
   cleanupAndExit(1)
 })
-
