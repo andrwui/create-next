@@ -26,7 +26,7 @@ const devDependencies = [
 const optionalPackages = [
   { name: 'motion', value: 'motion' },
   { name: 'lucide icons', value: 'lucide-react' },
-  { name: 'react three fiber', value: 'three @types/three @react-three/fiber' },
+  { name: 'react three fiber', value: 'three @types/three @react-three/fiber @react-three/drei' },
 ]
 
 const packageManagers = [
