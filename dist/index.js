@@ -26,6 +26,7 @@ const devDependencies = [
 const optionalPackages = [
   { name: 'motion', value: 'motion' },
   { name: 'lucide icons', value: 'lucide-react' },
+  { name: 'react three fiber', value: 'three @types/three @react-three/fiber' },
 ]
 
 // Setup keyboard handling
@@ -35,7 +36,7 @@ const setupKeyboardHandling = () => {
     process.stdin.setRawMode(true)
   }
 
-  process.stdin.on('keypress', (str, key) => {
+  process.stdin.on('keypress', (_, key) => {
     if ((key.name === 'q' && !key.shift) || key.name === 'escape') {
       console.log('\n\nExiting...')
       // Show cursor before exiting
