@@ -24,16 +24,20 @@ const devDependencies = [
 ]
 
 const optionalPackages = [
-  { name: 'lucide icons', value: 'lucide-react' },
-  { name: 'motion', value: 'motion' },
+  { name: 'r3f', value: 'three @types/three @react-three/fiber' },
   { name: 'lenis', value: 'lenis' },
-  { name: 'r3f', value: 'three @types/three @react-three/fiber @react-three/drei' },
+  { name: 'motion', value: 'motion' },
+  { name: 'lucide', value: 'lucide-react' },
+  { name: 'zustand', value: 'zustand' },
+  { name: 'react-spring', value: 'react-spring' },
 ]
 
 const r3fAuxPackages = [
-  { name: 'three-custom-shader-material', value: 'three-custom-shader-material' },
-  { name: '@react-three/postprocessing', value: '@react-three/postprocessing' },
-  { name: '@react-three/flex', value: '@react-three/flex' },
+  { name: 'r3f-drei', value: '@react-three/drei', checked: true },
+  { name: 'r3f-spring', value: '@react-spring/three', checked: true },
+  { name: 'r3f-custom-shader-material', value: 'three-custom-shader-material' },
+  { name: 'r3f-postprocessing', value: '@react-three/postprocessing' },
+  { name: 'r3f-flex', value: '@react-three/flex' },
 ]
 
 const packageManagers = [
