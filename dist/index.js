@@ -24,9 +24,16 @@ const devDependencies = [
 ]
 
 const optionalPackages = [
-  { name: 'motion', value: 'motion' },
   { name: 'lucide icons', value: 'lucide-react' },
-  { name: 'react three fiber', value: 'three @types/three @react-three/fiber @react-three/drei' },
+  { name: 'motion', value: 'motion' },
+  { name: 'lenis', value: 'lenis' },
+  { name: 'r3f', value: 'three @types/three @react-three/fiber @react-three/drei' },
+]
+
+const r3fAuxPackages = [
+  { name: 'three-custom-shader-material', value: 'three-custom-shader-material' },
+  { name: '@react-three/postprocessing', value: '@react-three/postprocessing' },
+  { name: '@react-three/flex', value: '@react-three/flex' },
 ]
 
 const packageManagers = [
@@ -182,6 +189,38 @@ const init = async () => {
       },
     ])
 
+    let selectedR3fAuxPackages = []
+    if (selectedPackages.some(pkg => pkg.includes('three'))) {
+      const { r3fAuxSelection } = await inquirer.prompt([
+        {
+          type: 'checkbox',
+          name: 'r3fAuxSelection',
+          message: 'r3f aux packages:',
+          choices: r3fAuxPackages,
+          theme: {
+            style: {
+              answer: (text) => ' ' + text,
+              message: (text) => text,
+              error: (text) => text,
+              defaultAnswer: (text) => text,
+              help: () => '',
+              highlight: (text) => text,
+              key: (text) => text,
+              disabledChoice: (text) => text,
+              description: (text) => text,
+            },
+            prefix: '\uf02d',
+            icon: {
+              checked: ' \uf0c8',
+              unchecked: ' \uf096',
+            },
+            helpMode: 'never',
+          },
+        },
+      ])
+      selectedR3fAuxPackages = r3fAuxSelection
+    }
+
     const { packageManager } = await inquirer.prompt([
       {
         type: 'list',
@@ -225,7 +264,7 @@ const init = async () => {
 
     console.log('')
 
-    const allDeps = [...dependencies, ...selectedPackages]
+    const allDeps = [...dependencies, ...selectedPackages, ...selectedR3fAuxPackages]
     if (!(await installPackages(allDeps, false, '', selectedPM))) {
       cleanupAndExit(1)
     }
