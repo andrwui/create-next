@@ -30,12 +30,13 @@ const optionalPackages = [
   { name: 'lucide', value: 'lucide-react' },
   { name: 'zustand', value: 'zustand' },
   { name: 'react-spring', value: 'react-spring' },
+  { name: 'supabase', value: '@supabase/supabase-js @supabase/auth-helpers-nextjs' },
+  { name: 'prisma', value: 'prisma @prisma/client' },
 ]
 
 const r3fAuxPackages = [
   { name: 'r3f-drei', value: '@react-three/drei', checked: true },
   { name: 'r3f-spring', value: '@react-spring/three', checked: true },
-  { name: 'r3f-custom-shader-material', value: 'three-custom-shader-material' },
   { name: 'r3f-postprocessing', value: '@react-three/postprocessing' },
   { name: 'r3f-flex', value: '@react-three/flex' },
 ]
