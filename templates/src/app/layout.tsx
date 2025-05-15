@@ -20,4 +20,3 @@ const RootLayout = ({ children }: RootLayoutProps) => {
 }
 
 export default RootLayout
-

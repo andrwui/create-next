@@ -26,7 +26,7 @@ export default [
         ]),
       ),
       'react/react-in-jsx-scope': 0,
-      'react/no-unknown-property': 0,
+      "react/no-unknown-property": ["error", { "ignore": ["args"] }],
       '@typescript-eslint/no-unused-vars': 0,
       '@typescript-eslint/no-explicit-any': 0,
       'prettier/prettier': [
