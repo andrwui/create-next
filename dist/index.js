@@ -21,20 +21,17 @@ const cbTheme = {
     description: (text) => text,
   },
   prefix: '\uf02d',
-  icon: {
-    checked: ' \uf0c8',
-    unchecked: ' \uf096',
-  },
+  icon: { checked: ' ', unchecked: ' ' },
   helpMode: 'never',
 }
 
 const inputTheme = {
   prefix: '\uf002',
   style: {
-    answer: (string) => string,
-    message: (string) => string,
-    error: (string) => string,
-    defaultAnswer: (string) => `\x1b[2m${string}\x1b[0m`,
+    answer: (s) => s,
+    message: (s) => s,
+    error: (s) => s,
+    defaultAnswer: (s) => `\x1b[2m${s}\x1b[0m`,
   },
 }
 
@@ -73,7 +70,7 @@ const optional = [
   { name: 'lenis', value: 'lenis' },
   { name: 'motion', value: 'motion' },
   { name: 'lucide', value: 'lucide-react' },
-  { name: 'prisma', value: 'prisma @prisma/client' },
+  { name: 'drizzle', value: 'drizzle-orm drizzle-kit' },
   { name: 'zustand', value: 'zustand' },
   { name: 'supabase', value: '@supabase/supabase-js @supabase/auth-helpers-nextjs' },
 ]
