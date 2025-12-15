@@ -14,27 +14,35 @@ import { copyFolder } from './fs/copy'
 import { getPackageManager } from './packages/package-manager'
 import { REQ_DEPENDENCIES, REQ_DEV_DEPENDENCIES } from './packages/required'
 
-const templateDir = path.join(process.cwd(), 'templates')
+import { fileURLToPath } from 'url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const templateDir = path.join(__dirname, '../templates')
+
 async function main() {
   const program = new Command()
-  program.option('-d, --dir <path>', 'directory to use')
-  program.parse(process.argv)
 
-  const args = program.args
+  program.argument('[dir]').parse(process.argv)
+  const dir = program.args[0]
 
-  const { projectName } = await inquirer.prompt([
-    {
-      type: 'input',
-      name: 'projectName',
-      message: 'project name:',
-      default: 'my-andrwui-next',
-      theme: inputTheme,
-    },
-  ])
+  let projectName = dir
+
+  if (!dir) {
+    const res = await inquirer.prompt([
+      {
+        type: 'input',
+        name: 'projectName',
+        message: 'project name:',
+        default: 'my-andrwui-next',
+        theme: inputTheme,
+      },
+    ])
+    projectName = res.projectName
+  }
+
+  const projectDir = dir === '.' ? cwd() : path.join(cwd(), projectName!)
 
   console.log('')
-
-  const projectDir = args[0] === '.' ? cwd() : path.join(cwd(), projectName)
 
   if (!fs.existsSync(projectDir)) {
     fs.mkdirSync(projectDir, { recursive: true })
