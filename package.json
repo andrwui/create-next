@@ -1,6 +1,6 @@
 {
   "name": "create-andrwui-next",
-  "version": "1.1.1",
+  "version": "2.0.0",
   "type": "module",
   "bin": {
     "create-andrwui-next": "./dist/index.js"
@@ -10,20 +10,29 @@
     "templates"
   ],
   "dependencies": {
-    "inquirer": "^12.4.2"
+    "commander": "^14.0.2",
+    "inquirer": "^13.1.0",
+    "ora": "^9.0.0"
   },
-  "packageManager": "bun@latest",
+  "packageManager": "pnpm@latest",
   "engines": {
     "node": ">=18.0.0"
   },
   "scripts": {
-    "build": "mkdir -p dist && chmod +x dist/index.js",
-    "prepublishOnly": "npm run build"
+    "build": "tsup",
+    "test": "tsup && node dist/index.js",
+    "prepublishOnly": "pnpm run build"
   },
   "devDependencies": {
+    "@types/inquirer": "^9.0.9",
+    "@types/node": "^25.0.2",
+    "@typescript-eslint/parser": "^8.49.0",
     "eslint": "^9.26.0",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-prettier": "^5.4.0",
-    "prettier": "^3.5.3"
+    "prettier": "^3.5.3",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.49.0"
   }
 }
