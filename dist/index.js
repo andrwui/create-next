@@ -373,7 +373,7 @@ async function main() {
   installSpinner.color = SPINNER_COLOR;
   installSpinner.text = "installing required packages...";
   await installPackages(REQ_DEPENDENCIES, false, projectDir, installSpinner);
-  await installPackages(REQ_DEV_DEPENDENCIES, false, projectDir, installSpinner);
+  await installPackages(REQ_DEV_DEPENDENCIES, true, projectDir, installSpinner);
   installSpinner.text = "installing selected packages...";
   await installPackages(resolvedOptional.regular, false, projectDir, installSpinner);
   await installPackages(resolvedOptional.dev, true, projectDir, installSpinner);
