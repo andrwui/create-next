@@ -1,4 +1,4 @@
-import fs from 'fs'
+import fs, { rm } from 'fs'
 import inquirer from 'inquirer'
 import { inputTheme } from './cli/inquirer-styles'
 import { promptExtraPackages, promptOptionalPackages } from './packages/prompts'
@@ -60,6 +60,15 @@ async function main() {
   const nextSpinner = ora('initializing next project...').start()
   nextSpinner.color = SPINNER_COLOR
   await createNext(projectDir)
+  await new Promise<void>((resolve, reject) => {
+    rm(path.join(projectDir, 'pnpm-workspace.yaml'), { force: true }, (err) => {
+      if (err) {
+        reject(err)
+      } else {
+        resolve()
+      }
+    })
+  })
   nextSpinner.stopAndPersist({ symbol: '󰄬' })
 
   const installSpinner = ora('installing packages...').start()

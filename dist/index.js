@@ -1,5 +1,5 @@
 // src/index.ts
-import fs from "fs";
+import fs, { rm } from "fs";
 import inquirer2 from "inquirer";
 
 // src/cli/inquirer-styles.ts
@@ -338,23 +338,28 @@ var REQ_DEV_DEPENDENCIES = [
 ];
 
 // src/index.ts
-var templateDir = path2.join(process.cwd(), "templates");
+import { fileURLToPath } from "url";
+var __dirname = path2.dirname(fileURLToPath(import.meta.url));
+var templateDir = path2.join(__dirname, "../templates");
 async function main() {
   const program = new Command();
-  program.option("-d, --dir <path>", "directory to use");
-  program.parse(process.argv);
-  const args = program.args;
-  const { projectName } = await inquirer2.prompt([
-    {
-      type: "input",
-      name: "projectName",
-      message: "project name:",
-      default: "my-andrwui-next",
-      theme: inputTheme
-    }
-  ]);
+  program.argument("[dir]").parse(process.argv);
+  const dir = program.args[0];
+  let projectName = dir;
+  if (!dir) {
+    const res = await inquirer2.prompt([
+      {
+        type: "input",
+        name: "projectName",
+        message: "project name:",
+        default: "my-andrwui-next",
+        theme: inputTheme
+      }
+    ]);
+    projectName = res.projectName;
+  }
+  const projectDir = dir === "." ? cwd() : path2.join(cwd(), projectName);
   console.log("");
-  const projectDir = args[0] === "." ? cwd() : path2.join(cwd(), projectName);
   if (!fs.existsSync(projectDir)) {
     fs.mkdirSync(projectDir, { recursive: true });
   }
@@ -368,6 +373,15 @@ async function main() {
   const nextSpinner = ora("initializing next project...").start();
   nextSpinner.color = SPINNER_COLOR;
   await createNext(projectDir);
+  await new Promise((resolve, reject) => {
+    rm(path2.join(projectDir, "pnpm-workspace.yaml"), { force: true }, (err) => {
+      if (err) {
+        reject(err);
+      } else {
+        resolve();
+      }
+    });
+  });
   nextSpinner.stopAndPersist({ symbol: "\u{F012C}" });
   const installSpinner = ora("installing packages...").start();
   installSpinner.color = SPINNER_COLOR;
