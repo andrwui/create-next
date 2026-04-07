@@ -100,7 +100,10 @@ var PACKAGE_REGISTRY = {
   },
   "\uEA74 icons": {
     "lucide-react": {
-      regular: ["lucide-react"],
+      regular: ["lucide-react"]
+    },
+    "tabler-icons": {
+      regular: ["@tabler/icons-react"],
       checked: true
     }
   }
