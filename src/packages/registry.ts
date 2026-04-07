@@ -78,6 +78,9 @@ export const PACKAGE_REGISTRY: Record<string, Record<string, PackageDef>> = {
   ' icons': {
     'lucide-react': {
       regular: ['lucide-react'],
+    },
+    'tabler-icons': {
+      regular: ['@tabler/icons-react'],
       checked: true,
     },
   },
