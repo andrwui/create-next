@@ -1,7 +1,6 @@
 import { spawn } from 'node:child_process'
 import { getPackageManager } from './package-manager'
-import ora, { type Ora } from 'ora'
-import { SPINNER_COLOR } from '../constants'
+import { type Ora } from 'ora'
 
 export async function installPackages(
   packages: string[],
@@ -9,25 +8,34 @@ export async function installPackages(
   dir: string,
   spinner: Ora,
 ) {
-  for (const pkg of packages) {
-    spinner.text = `installing ${pkg}`
-    await new Promise<void>((resolve, reject) => {
-      const args = ['install', pkg]
-      if (isDev) args.push('-D')
-      const child = spawn(getPackageManager(), args, { cwd: dir, stdio: 'pipe' })
+  if (packages.length === 0) return
 
-      let stderr = ''
-      child.stderr?.on('data', (data) => {
-        stderr += data.toString()
-      })
+  const pm = getPackageManager()
+  spinner.text = `installing ${packages.join(', ')}`
+  await new Promise<void>((resolve, reject) => {
+    const args = ['install', ...packages]
+    if (isDev) args.push('-D')
+    const child = spawn(pm, args, { cwd: dir, stdio: 'pipe' })
 
-      child.on('close', (code) => {
-        if (code === 0) {
-          resolve()
-        } else {
-          reject(new Error(`Failed to install ${pkg} (exit code ${code})\n${stderr}`))
-        }
-      })
+    let stderr = ''
+    let stdout = ''
+    child.stdout?.on('data', (data) => {
+      stdout += data.toString()
     })
-  }
+    child.stderr?.on('data', (data) => {
+      stderr += data.toString()
+    })
+
+    child.on('close', (code) => {
+      if (code === 0) {
+        resolve()
+      } else {
+        reject(
+          new Error(
+            `Failed to install packages with ${pm} (exit code ${code})\n${stdout}${stderr}`,
+          ),
+        )
+      }
+    })
+  })
 }

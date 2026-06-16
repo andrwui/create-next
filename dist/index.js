@@ -240,26 +240,34 @@ function getPackageManagerInfo() {
 
 // src/packages/installer.ts
 async function installPackages(packages, isDev = false, dir, spinner) {
-  for (const pkg of packages) {
-    spinner.text = `installing ${pkg}`;
-    await new Promise((resolve, reject) => {
-      const args = ["install", pkg];
-      if (isDev) args.push("-D");
-      const child = spawn(getPackageManager(), args, { cwd: dir, stdio: "pipe" });
-      let stderr = "";
-      child.stderr?.on("data", (data) => {
-        stderr += data.toString();
-      });
-      child.on("close", (code) => {
-        if (code === 0) {
-          resolve();
-        } else {
-          reject(new Error(`Failed to install ${pkg} (exit code ${code})
-${stderr}`));
-        }
-      });
+  if (packages.length === 0) return;
+  const pm = getPackageManager();
+  spinner.text = `installing ${packages.join(", ")}`;
+  await new Promise((resolve, reject) => {
+    const args = ["install", ...packages];
+    if (isDev) args.push("-D");
+    const child = spawn(pm, args, { cwd: dir, stdio: "pipe" });
+    let stderr = "";
+    let stdout = "";
+    child.stdout?.on("data", (data) => {
+      stdout += data.toString();
     });
-  }
+    child.stderr?.on("data", (data) => {
+      stderr += data.toString();
+    });
+    child.on("close", (code) => {
+      if (code === 0) {
+        resolve();
+      } else {
+        reject(
+          new Error(
+            `Failed to install packages with ${pm} (exit code ${code})
+${stdout}${stderr}`
+          )
+        );
+      }
+    });
+  });
 }
 
 // src/index.ts
@@ -280,7 +288,8 @@ async function createNext(targetDir) {
     bun: "--use-bun"
   };
   const runner = manager === "npm" ? "npx" : manager === "yarn" ? "yarn dlx" : manager === "pnpm" ? "pnpm dlx" : "bunx";
-  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "andrwui-next-"));
+  const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), "andrwui-next-"));
+  const tmpDir = path.join(tmpRoot, "app");
   const cmd = [
     runner,
     "create-next-app@latest",
@@ -305,11 +314,12 @@ ${error.message}`));
     });
   });
   for (const file of fs.readdirSync(tmpDir)) {
+    if (file === ".git") continue;
     const src = path.join(tmpDir, file);
     const dest = path.join(targetDir, file);
     fs.cpSync(src, dest, { recursive: true, force: true });
   }
-  fs.rmSync(tmpDir, { recursive: true, force: true });
+  fs.rmSync(tmpRoot, { recursive: true, force: true });
 }
 
 // src/index.ts
@@ -343,12 +353,8 @@ var REQ_DEV_DEPENDENCIES = [
   "tailwindcss@latest",
   "postcss",
   "@tailwindcss/postcss",
-  "eslint",
-  "@eslint/js",
-  "@next/eslint-plugin-next",
   "eslint-plugin-prettier",
   "eslint-plugin-react",
-  "typescript-eslint",
   "eslint-config-prettier",
   "prettier-plugin-tailwindcss",
   "@trivago/prettier-plugin-sort-imports"

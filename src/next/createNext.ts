@@ -23,7 +23,8 @@ export async function createNext(targetDir: string) {
           ? 'pnpm dlx'
           : 'bunx'
 
-  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'andrwui-next-'))
+  const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'andrwui-next-'))
+  const tmpDir = path.join(tmpRoot, 'app')
 
   const cmd = [
     runner,
@@ -49,10 +50,11 @@ export async function createNext(targetDir: string) {
   })
 
   for (const file of fs.readdirSync(tmpDir)) {
+    if (file === '.git') continue
     const src = path.join(tmpDir, file)
     const dest = path.join(targetDir, file)
     fs.cpSync(src, dest, { recursive: true, force: true })
   }
 
-  fs.rmSync(tmpDir, { recursive: true, force: true })
+  fs.rmSync(tmpRoot, { recursive: true, force: true })
 }
