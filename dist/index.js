@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 // src/index.ts
-import fs, { rm } from "fs";
+import fs2 from "fs";
 import inquirer2 from "inquirer";
 
 // src/cli/inquirer-styles.ts
@@ -264,10 +264,13 @@ ${stderr}`));
 
 // src/index.ts
 import { cwd } from "process";
-import path2 from "path";
+import path3 from "path";
 
 // src/next/createNext.ts
 import { exec } from "child_process";
+import fs from "fs";
+import os from "os";
+import path from "path";
 async function createNext(targetDir) {
   const { manager } = getPackageManagerInfo();
   const pmFlags = {
@@ -277,10 +280,11 @@ async function createNext(targetDir) {
     bun: "--use-bun"
   };
   const runner = manager === "npm" ? "npx" : manager === "yarn" ? "yarn dlx" : manager === "pnpm" ? "pnpm dlx" : "bunx";
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "andrwui-next-"));
   const cmd = [
     runner,
     "create-next-app@latest",
-    targetDir,
+    tmpDir,
     "--ts",
     "--app",
     "--src-dir",
@@ -289,15 +293,23 @@ async function createNext(targetDir) {
     "--empty",
     "--yes"
   ].join(" ");
-  return new Promise((resolve, reject) => {
-    exec(cmd, (error) => {
+  await new Promise((resolve, reject) => {
+    exec(cmd, (error, _, stderr) => {
       if (error) {
-        reject(error);
+        reject(new Error(`Failed to create Next.js app:
+${stderr}
+${error.message}`));
       } else {
         resolve();
       }
     });
   });
+  for (const file of fs.readdirSync(tmpDir)) {
+    const src = path.join(tmpDir, file);
+    const dest = path.join(targetDir, file);
+    fs.cpSync(src, dest, { recursive: true, force: true });
+  }
+  fs.rmSync(tmpDir, { recursive: true, force: true });
 }
 
 // src/index.ts
@@ -308,14 +320,14 @@ var SPINNER_COLOR = "white";
 
 // src/fs/copy.ts
 import { mkdir, writeFile, readdir, readFile } from "fs/promises";
-import path from "path";
+import path2 from "path";
 var copyFolder = async (from, to) => {
   await mkdir(to, { recursive: true });
   const entries = await readdir(from, { withFileTypes: true });
   await Promise.all(
     entries.map(async (e) => {
-      const src = path.join(from, e.name);
-      const dst = path.join(to, e.name);
+      const src = path2.join(from, e.name);
+      const dst = path2.join(to, e.name);
       if (e.isDirectory()) {
         await copyFolder(src, dst);
       } else {
@@ -344,8 +356,8 @@ var REQ_DEV_DEPENDENCIES = [
 
 // src/index.ts
 import { fileURLToPath } from "url";
-var __dirname = path2.dirname(fileURLToPath(import.meta.url));
-var templateDir = path2.join(__dirname, "../templates");
+var __dirname = path3.dirname(fileURLToPath(import.meta.url));
+var templateDir = path3.join(__dirname, "../templates");
 async function main() {
   const program = new Command();
   program.argument("[dir]").parse(process.argv);
@@ -363,10 +375,10 @@ async function main() {
     ]);
     projectName = res.projectName;
   }
-  const projectDir = dir === "." ? cwd() : path2.join(cwd(), projectName);
+  const projectDir = dir === "." ? cwd() : path3.join(cwd(), projectName);
   console.log("");
-  if (!fs.existsSync(projectDir)) {
-    fs.mkdirSync(projectDir, { recursive: true });
+  if (!fs2.existsSync(projectDir)) {
+    fs2.mkdirSync(projectDir, { recursive: true });
   }
   const selectedPackages = await promptOptionalPackages();
   const extras = await promptExtraPackages(selectedPackages);
@@ -378,15 +390,6 @@ async function main() {
   const nextSpinner = ora("initializing next project...").start();
   nextSpinner.color = SPINNER_COLOR;
   await createNext(projectDir);
-  await new Promise((resolve, reject) => {
-    rm(path2.join(projectDir, "pnpm-workspace.yaml"), { force: true }, (err) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve();
-      }
-    });
-  });
   nextSpinner.stopAndPersist({ symbol: "\u{F012C}" });
   const installSpinner = ora("installing packages...").start();
   installSpinner.color = SPINNER_COLOR;

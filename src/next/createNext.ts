@@ -1,4 +1,7 @@
 import { exec } from 'node:child_process'
+import fs from 'node:fs'
+import os from 'node:os'
+import path from 'node:path'
 import { getPackageManagerInfo } from '../packages/package-manager'
 
 export async function createNext(targetDir: string) {
@@ -20,10 +23,12 @@ export async function createNext(targetDir: string) {
           ? 'pnpm dlx'
           : 'bunx'
 
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'andrwui-next-'))
+
   const cmd = [
     runner,
     'create-next-app@latest',
-    targetDir,
+    tmpDir,
     '--ts',
     '--app',
     '--src-dir',
@@ -33,13 +38,21 @@ export async function createNext(targetDir: string) {
     '--yes',
   ].join(' ')
 
-  return new Promise<void>((resolve, reject) => {
-    exec(cmd, (error) => {
+  await new Promise<void>((resolve, reject) => {
+    exec(cmd, (error, _, stderr) => {
       if (error) {
-        reject(error)
+        reject(new Error(`Failed to create Next.js app:\n${stderr}\n${error.message}`))
       } else {
         resolve()
       }
     })
   })
+
+  for (const file of fs.readdirSync(tmpDir)) {
+    const src = path.join(tmpDir, file)
+    const dest = path.join(targetDir, file)
+    fs.cpSync(src, dest, { recursive: true, force: true })
+  }
+
+  fs.rmSync(tmpDir, { recursive: true, force: true })
 }
