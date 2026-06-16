@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 // src/index.ts
 import fs, { rm } from "fs";
 import inquirer2 from "inquirer";
