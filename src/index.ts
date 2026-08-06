@@ -19,11 +19,17 @@ import { fileURLToPath } from 'url'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const templateDir = path.join(__dirname, '../templates')
 
+const { version } = JSON.parse(
+  fs.readFileSync(path.join(__dirname, '../package.json'), 'utf-8'),
+) as { version: string }
+
 async function main() {
   const program = new Command()
 
   program.argument('[dir]').parse(process.argv)
   const dir = program.args[0]
+
+  console.log(`\ncreate-andrwui-next v${version}\n`)
 
   let projectName = dir
 
@@ -41,8 +47,6 @@ async function main() {
   }
 
   const projectDir = dir === '.' ? cwd() : path.join(cwd(), projectName!)
-
-  console.log('')
 
   if (!fs.existsSync(projectDir)) {
     fs.mkdirSync(projectDir, { recursive: true })

@@ -386,10 +386,16 @@ var REQ_DEV_DEPENDENCIES = [
 import { fileURLToPath } from "url";
 var __dirname = path3.dirname(fileURLToPath(import.meta.url));
 var templateDir = path3.join(__dirname, "../templates");
+var { version } = JSON.parse(
+  fs2.readFileSync(path3.join(__dirname, "../package.json"), "utf-8")
+);
 async function main() {
   const program = new Command();
   program.argument("[dir]").parse(process.argv);
   const dir = program.args[0];
+  console.log(`
+create-andrwui-next v${version}
+`);
   let projectName = dir;
   if (!dir) {
     const res = await inquirer2.prompt([
@@ -404,7 +410,6 @@ async function main() {
     projectName = res.projectName;
   }
   const projectDir = dir === "." ? cwd() : path3.join(cwd(), projectName);
-  console.log("");
   if (!fs2.existsSync(projectDir)) {
     fs2.mkdirSync(projectDir, { recursive: true });
   }
