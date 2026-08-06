@@ -244,7 +244,9 @@ async function installPackages(packages, isDev = false, dir, spinner) {
   const pm = getPackageManager();
   spinner.text = `installing ${packages.join(", ")}`;
   await new Promise((resolve, reject) => {
-    const args = ["install", ...packages];
+    const args = ["install"];
+    if (pm === "pnpm") args.push("--config.strict-dep-builds=false");
+    args.push(...packages);
     if (isDev) args.push("-D");
     const child = spawn(pm, args, { cwd: dir, stdio: "pipe" });
     let stderr = "";
@@ -265,6 +267,26 @@ async function installPackages(packages, isDev = false, dir, spinner) {
 ${stdout}${stderr}`
           )
         );
+      }
+    });
+  });
+}
+async function approvePnpmBuilds(dir) {
+  await new Promise((resolve, reject) => {
+    const child = spawn("pnpm", ["approve-builds", "--all"], {
+      cwd: dir,
+      stdio: "pipe"
+    });
+    let stderr = "";
+    child.stderr?.on("data", (data) => {
+      stderr += data.toString();
+    });
+    child.on("close", (code) => {
+      if (code === 0) {
+        resolve();
+      } else {
+        reject(new Error(`pnpm approve-builds failed (exit code ${code})
+${stderr}`));
       }
     });
   });
@@ -408,6 +430,10 @@ async function main() {
   installSpinner.text = "installing selected extra packages...";
   await installPackages(resolvedExtras.regular, false, projectDir, installSpinner);
   await installPackages(resolvedExtras.dev, true, projectDir, installSpinner);
+  if (getPackageManager() === "pnpm") {
+    installSpinner.text = "approving builds...";
+    await approvePnpmBuilds(projectDir);
+  }
   installSpinner.stopAndPersist({ symbol: "\u{F012C}" });
   const copySpinner = ora("copying templates...").start();
   copySpinner.color = SPINNER_COLOR;

@@ -4,7 +4,7 @@ import { inputTheme } from './cli/inquirer-styles'
 import { promptExtraPackages, promptOptionalPackages } from './packages/prompts'
 import { resolveExtraPackages, resolveOptionalPackages } from './packages/resolver'
 import { Command } from 'commander'
-import { installPackages } from './packages/installer'
+import { installPackages, approvePnpmBuilds } from './packages/installer'
 import { cwd } from 'process'
 import path from 'path'
 import { createNext } from './next/createNext'
@@ -76,6 +76,11 @@ async function main() {
   installSpinner.text = 'installing selected extra packages...'
   await installPackages(resolvedExtras.regular, false, projectDir, installSpinner)
   await installPackages(resolvedExtras.dev, true, projectDir, installSpinner)
+
+  if (getPackageManager() === 'pnpm') {
+    installSpinner.text = 'approving builds...'
+    await approvePnpmBuilds(projectDir)
+  }
 
   installSpinner.stopAndPersist({ symbol: '󰄬' })
 

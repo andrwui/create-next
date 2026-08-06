@@ -13,7 +13,9 @@ export async function installPackages(
   const pm = getPackageManager()
   spinner.text = `installing ${packages.join(', ')}`
   await new Promise<void>((resolve, reject) => {
-    const args = ['install', ...packages]
+    const args = ['install']
+    if (pm === 'pnpm') args.push('--config.strict-dep-builds=false')
+    args.push(...packages)
     if (isDev) args.push('-D')
     const child = spawn(pm, args, { cwd: dir, stdio: 'pipe' })
 
@@ -35,6 +37,28 @@ export async function installPackages(
             `Failed to install packages with ${pm} (exit code ${code})\n${stdout}${stderr}`,
           ),
         )
+      }
+    })
+  })
+}
+
+export async function approvePnpmBuilds(dir: string) {
+  await new Promise<void>((resolve, reject) => {
+    const child = spawn('pnpm', ['approve-builds', '--all'], {
+      cwd: dir,
+      stdio: 'pipe',
+    })
+
+    let stderr = ''
+    child.stderr?.on('data', (data) => {
+      stderr += data.toString()
+    })
+
+    child.on('close', (code) => {
+      if (code === 0) {
+        resolve()
+      } else {
+        reject(new Error(`pnpm approve-builds failed (exit code ${code})\n${stderr}`))
       }
     })
   })
