@@ -246,6 +246,7 @@ async function installPackages(packages, isDev = false, dir, spinner) {
   await new Promise((resolve, reject) => {
     const args = ["install"];
     if (pm === "pnpm") args.push("--config.strict-dep-builds=false");
+    if (pm === "npm") args.push("--legacy-peer-deps");
     args.push(...packages);
     if (isDev) args.push("-D");
     const child = spawn(pm, args, { cwd: dir, stdio: "pipe" });
